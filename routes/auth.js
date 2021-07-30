@@ -1,8 +1,8 @@
 import express from "express";
-import { showMessage } from "./../controllers/auth";
-
 const router = express.Router();
 
-router.get("/:message", showMessage);
+import { register } from "./../controllers/auth";
+
+router.post("/register", register);
 
 module.exports = router;

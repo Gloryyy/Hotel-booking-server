@@ -1,4 +1,5 @@
 import Hotel from "../models/hotel";
+import Order from "../models/order";
 import fs from "fs";
 
 export const create = async (req, res) => {
@@ -29,6 +30,7 @@ export const create = async (req, res) => {
 };
 
 export const hotels = async (req, res) => {
+  // let all = await Hotel.find({ from: { $gte: new Date() } })
   let all = await Hotel.find({})
     .limit(24)
     .select("-image.data")
@@ -94,4 +96,29 @@ export const update = async (req, res) => {
     console.log(err);
     res.status(400).send("Hotel update failed");
   }
+};
+
+export const userHotelBookings = async (req, res) => {
+  const all = await Order.find({ orderedBy: req.user._id })
+    .select("session")
+    .populate("hotel", "-image.data")
+    .populate("orderedBy", "_id name")
+    .exec();
+  res.json(all);
+};
+
+export const isAlreadyBooked = async (req, res) => {
+  const { hotelId } = req.params;
+  // find orders of the currently logged in user
+  const userOrders = await Order.find({ orderedBy: req.user._id })
+    .select("hotel")
+    .exec();
+  // check if hotel id is found in userOrders array
+  let ids = [];
+  for (let i = 0; i < userOrders.length; i++) {
+    ids.push(userOrders[i].hotel.toString());
+  }
+  res.json({
+    ok: ids.includes(hotelId),
+  });
 };
